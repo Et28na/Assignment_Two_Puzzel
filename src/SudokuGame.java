@@ -8,7 +8,7 @@
 //  Press ESC to clear
 //  Grid flashes green when solved correctly
 
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
@@ -54,6 +54,9 @@ public class SudokuGame extends GameEngine {
     private static AudioClip victorySound;
     private static boolean musicPlaying = false;
 
+    // Background Image
+    private Image backgroundImage;
+
 
     public static void main(String[] args) {
         GameEngine.createGame(new SudokuGame(), 60); // framerate
@@ -92,6 +95,12 @@ public class SudokuGame extends GameEngine {
                 isOriginalClue[row][col] = initialPuzzle[row][col] != 0;
             }
         }
+
+        // Load background image
+        if (backgroundImage == null) {
+            backgroundImage = loadImage("background.png");
+        }
+
         // Load audio clips once
         if (selectSound  == null) selectSound  = loadAudio("selectSound.wav");
         if (errorSound   == null) errorSound   = loadAudio("errorSound.wav");
@@ -140,6 +149,12 @@ public class SudokuGame extends GameEngine {
     @Override
     public void paintComponent() {
         clearBackground(width(), height());
+
+        // Draw background image if loaded
+        if (backgroundImage != null) {
+            drawImage(backgroundImage, 0, 0, width(), height());
+        }
+
 
         int boardOriginX = BOARD_PADDING;
         int boardOriginY = BOARD_PADDING;

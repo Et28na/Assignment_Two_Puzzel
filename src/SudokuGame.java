@@ -264,6 +264,14 @@ public class SudokuGame extends GameEngine {
             if (digitValue >= 0) {
                 placeCellValue(digitValue);
             }
+            else if (keyCode == KeyEvent.VK_M) {        // press M to toggle music
+                if (musicPlaying) {
+                    stopAudioLoop(backGroundMusic);
+                } else {
+                    startAudioLoop(backGroundMusic, -12f);
+                }
+                musicPlaying = !musicPlaying;
+            }
         }
     }
 

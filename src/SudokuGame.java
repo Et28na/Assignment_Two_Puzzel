@@ -20,7 +20,6 @@ public class SudokuGame extends GameEngine {
     private static final int CELL_SIZE_PIXELS = 50; // This makes each cell(box)-50 pixels tall and wide
     private static final int BOARD_PADDING = 50; // Adds  pixels from the board to the window (Might change would be good to get feedback)
     private static final int WINDOW_SIZE = CELL_SIZE_PIXELS * SUDOKU_GRID_SIZE + BOARD_PADDING * 2;
-    private static AudioClip backGroundMusic;
     // just sum to find the total window size (board padding times 2 as both sides of the board)
 
     private static final int GRID_LINE_THIN = 1; // for the inner grid
@@ -35,6 +34,7 @@ public class SudokuGame extends GameEngine {
     private int selectedRow = -1;
     private int selectedColumn = -1;
     private boolean isPuzzleSolved = false;
+    private boolean victoryPlayed = false; // Track victory sound has been played
     private int hintRow = -1;
     private int hintColumn = -1;
     private long hintStartTime = 0;
@@ -46,6 +46,12 @@ public class SudokuGame extends GameEngine {
     private final Color HINT_HIGHLIGHT = new Color(255, 200, 255); // Light purple
     private final Color ERROR_RED = new Color(220, 20, 20);
     private final Color USER_INPUT_BLUE = new Color(20, 20, 180);
+
+    //Audio
+    private static AudioClip backGroundMusic;
+    private static AudioClip selectSound;
+    private static AudioClip errorSound;
+    private static AudioClip victorySound;
     private static boolean musicPlaying = false;
 
 
@@ -66,6 +72,7 @@ public class SudokuGame extends GameEngine {
 
     private void loadInitPuzzle() { // probably going to make a few games
         int[][] initialPuzzle = {
+                // Starter puzzle 0 = empty
                 {5,3,0, 0,7,0, 0,0,0}, //T - top row
                 {6,0,0, 1,9,5, 0,0,0}, // M - middle row
                 {0,9,8, 0,0,0, 0,6,0}, // B - Bottom row
@@ -85,6 +92,11 @@ public class SudokuGame extends GameEngine {
                 isOriginalClue[row][col] = initialPuzzle[row][col] != 0;
             }
         }
+        // Load audio clips once
+        if (selectSound  == null) selectSound  = loadAudio("selectSound.wav");
+        if (errorSound   == null) errorSound   = loadAudio("errorSound.wav");
+        if (victorySound == null) victorySound = loadAudio("VictorySound.wav");
+
         if (backGroundMusic == null) {
             backGroundMusic = loadAudio("backroundMusic.wav");
         }if (!musicPlaying && backGroundMusic != null) {
@@ -96,6 +108,7 @@ public class SudokuGame extends GameEngine {
     private void resetGameState() {
         selectedRow = selectedColumn = -1;
         isPuzzleSolved = false;
+        victoryPlayed = false; // Reset victory sound flag
         clearHint();
     }
 
@@ -252,8 +265,8 @@ public class SudokuGame extends GameEngine {
     }
 
     @Override
-    public void keyPressed(KeyEvent keyEvent) {
-        int keyCode = keyEvent.getKeyCode();
+    public void keyPressed(KeyEvent e) {
+        int keyCode = e.getKeyCode();
 
         if (handleSpecialKeys(keyCode)) {
             return;
@@ -304,8 +317,34 @@ public class SudokuGame extends GameEngine {
     }
 
     private void placeCellValue(int value) {
+
         currentBoard[selectedRow][selectedColumn] = value;
+
+        // Check if the new value violates rules and it's not clearing the cell
+        if (value != 0 && hasRuleViolation(selectedRow, selectedColumn, value)) {
+            // Play error sound for illegal move
+            if (errorSound != null) {
+                playAudio(errorSound);
+            }
+        } else {
+            // Play select sound for valid placement
+            if (selectSound != null) {
+                playAudio(selectSound);
+            }
+        }
+
+        // Check if puzzle is now solved
+        boolean wasNotSolved = !isPuzzleSolved;
         isPuzzleSolved = checkIfPuzzleIsSolved();
+
+        // Play victory sound if puzzle was just solved
+        if (isPuzzleSolved && wasNotSolved && !victoryPlayed) {
+            if (victorySound != null) {
+                playAudio(victorySound);
+                victoryPlayed = true;
+            }
+        }
+
         clearHint();
     }
 

@@ -40,6 +40,14 @@ public class SudokuGame extends GameEngine {
     private long hintStartTime = 0;
     private static final long HINT_DISPLAY_DURATION = 2000; // 2 seconds
 
+    // Timer Variables
+    private long startTime = 0;
+    private long timeRemaining = 300000; // 5 minutes in milliseconds
+    private static final long INITIAL_TIME = 300000; // 5 minutes
+    private static final long CORRECT_BONUS = 15000; // +15 seconds for correct
+    private static final long WRONG_PENALTY = 5000; // -5 seconds for wrong
+    private boolean gameOver = false;
+
     // Color Scheme
     private final Color SELECTION_HIGHLIGHT = new Color(255, 255, 200); // Pale yellow
     private final Color SOLVED_FLASH_GREEN = new Color(200, 255, 200);
@@ -70,7 +78,7 @@ public class SudokuGame extends GameEngine {
     public void init() {
         loadInitPuzzle();
         resetGameState();
-
+        startTime = getTime(); // Start the timer
     }
 
     private void loadInitPuzzle() { // probably going to make a few games
@@ -119,12 +127,29 @@ public class SudokuGame extends GameEngine {
         isPuzzleSolved = false;
         victoryPlayed = false; // Reset victory sound flag
         clearHint();
+        startTime = getTime(); // Reset timer
+        timeRemaining = INITIAL_TIME; // Reset to 5 minutes
+        gameOver = false;
     }
 
     @Override
     public void update(double deltaTime) {
         updateSolvedFlashEffect();
         updateHintDisplay();
+
+        // Update countdown timer only if game is still active
+        if (!isPuzzleSolved && !gameOver) {
+            long elapsed = getTime() - startTime;
+            long newTimeRemaining = INITIAL_TIME - elapsed;
+
+            // Check if time has run out
+            if (newTimeRemaining <= 0) {
+                timeRemaining = 0;
+                gameOver = true;
+            } else {
+                timeRemaining = newTimeRemaining;
+            }
+        }
     }
 
     private void updateSolvedFlashEffect() {
@@ -154,7 +179,6 @@ public class SudokuGame extends GameEngine {
         if (backgroundImage != null) {
             drawImage(backgroundImage, 0, 0, width(), height());
         }
-
 
         int boardOriginX = BOARD_PADDING;
         int boardOriginY = BOARD_PADDING;
@@ -234,9 +258,32 @@ public class SudokuGame extends GameEngine {
     }
 
     private void drawGameStatus() {
+        // Draw timer
+        long seconds = timeRemaining / 1000;
+        long minutes = seconds / 60;
+        seconds = seconds % 60;
+
+        // Change color based on time remaining
+        if (timeRemaining < 60000) { // Less than 1 minute
+            changeColor(red);
+        } else if (timeRemaining < 120000) { // Less than 2 minutes
+            changeColor(orange);
+        } else {
+            changeColor(black);
+        }
+
+        drawBoldText(BOARD_PADDING, 30, String.format("Time: %02d:%02d", minutes, seconds), "Arial", 20);
+
+        // Draw game status messages
         if (isPuzzleSolved) {
             changeColor(green);
             drawBoldText(BOARD_PADDING, WINDOW_SIZE - 10, "Puzzle Solved!", "Arial", 30);
+            changeColor(blue);
+            long finalTime = (INITIAL_TIME - timeRemaining) / 1000;
+            drawText(BOARD_PADDING + 250, WINDOW_SIZE - 10, "Completed in: " + (finalTime / 60) + "m " + (finalTime % 60) + "s", "Arial", 20);
+        } else if (gameOver) {
+            changeColor(red);
+            drawBoldText(BOARD_PADDING, WINDOW_SIZE - 10, "Time's Up! Press R to restart", "Arial", 30);
         }
     }
 
@@ -287,7 +334,7 @@ public class SudokuGame extends GameEngine {
             return;
         }
 
-        if (isCellSelected()) {
+        if (isCellSelected() && !gameOver) {
             int digitValue = mapKeyToDigit(keyCode);
             if (digitValue >= 0) {
                 placeCellValue(digitValue);
@@ -332,17 +379,31 @@ public class SudokuGame extends GameEngine {
     }
 
     private void placeCellValue(int value) {
+        // Don't allow moves if game is over
+        if (gameOver) {
+            return;
+        }
 
+        int previousValue = currentBoard[selectedRow][selectedColumn];
         currentBoard[selectedRow][selectedColumn] = value;
 
-        // Check if the new value violates rules and it's not clearing the cell
+        // Check if the new value violates rules
         if (value != 0 && hasRuleViolation(selectedRow, selectedColumn, value)) {
             // Play error sound for illegal move
             if (errorSound != null) {
                 playAudio(errorSound);
             }
-        } else {
+            // Subtract 5 seconds for wrong answer
+            startTime = startTime - WRONG_PENALTY;
+        } else if (value != 0 && previousValue == 0) {
             // Play select sound for valid placement
+            if (selectSound != null) {
+                playAudio(selectSound);
+            }
+            // Add 15 seconds for correct answer decrease start time to increase remaining time
+            startTime = startTime + CORRECT_BONUS;
+        } else if (value == 0) {
+            // Just play sound for clearing, no time bonus/penalty
             if (selectSound != null) {
                 playAudio(selectSound);
             }

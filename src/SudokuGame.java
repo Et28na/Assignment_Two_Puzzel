@@ -18,8 +18,9 @@ public class SudokuGame extends GameEngine {
     private static final int SUDOKU_GRID_SIZE = 9; // The total size of the grid
     private static final int SUBGRID_SIZE = 3; // One of the sections out of the nine grids
     private static final int CELL_SIZE_PIXELS = 50; // This makes each cell(box)-50 pixels tall and wide
-    private static final int BOARD_PADDING = 100; // Adds  pixels from the board to the window (Might change would be good to get feedback)
+    private static final int BOARD_PADDING = 50; // Adds  pixels from the board to the window (Might change would be good to get feedback)
     private static final int WINDOW_SIZE = CELL_SIZE_PIXELS * SUDOKU_GRID_SIZE + BOARD_PADDING * 2;
+    private static AudioClip backGroundMusic;
     // just sum to find the total window size (board padding times 2 as both sides of the board)
 
     private static final int GRID_LINE_THIN = 1; // for the inner grid
@@ -45,6 +46,8 @@ public class SudokuGame extends GameEngine {
     private final Color HINT_HIGHLIGHT = new Color(255, 200, 255); // Light purple
     private final Color ERROR_RED = new Color(220, 20, 20);
     private final Color USER_INPUT_BLUE = new Color(20, 20, 180);
+    private static boolean musicPlaying = false;
+
 
     public static void main(String[] args) {
         GameEngine.createGame(new SudokuGame(), 60); // framerate
@@ -58,6 +61,7 @@ public class SudokuGame extends GameEngine {
     public void init() {
         loadInitPuzzle();
         resetGameState();
+
     }
 
     private void loadInitPuzzle() { // probably going to make a few games
@@ -80,6 +84,12 @@ public class SudokuGame extends GameEngine {
                 currentBoard[row][col] = initialPuzzle[row][col];
                 isOriginalClue[row][col] = initialPuzzle[row][col] != 0;
             }
+        }
+        if (backGroundMusic == null) {
+            backGroundMusic = loadAudio("backroundMusic.wav");
+        }if (!musicPlaying && backGroundMusic != null) {
+            startAudioLoop(backGroundMusic, -12f);
+            musicPlaying = true;
         }
     }
 

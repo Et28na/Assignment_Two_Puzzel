@@ -67,6 +67,13 @@ public class SudokuGame extends GameEngine {
     // Background Image
     private Image backgroundImage;
 
+    // Pen cursor
+    private Image penCursor;
+    private int mouseX = 0, mouseY = 0;
+    private boolean penClickAnimating = false;
+    private long penClickStartTime = 0;
+    private final long PEN_ANIM_DURATION = 150; // in ms
+
 
     public static void main(String[] args) {
         GameEngine.createGame(new SudokuGame(), 60); // framerate
@@ -79,6 +86,7 @@ public class SudokuGame extends GameEngine {
     @Override
     public void init() {
         currentState = GameState.MENU;
+        penCursor = loadImage("pen.png");
     }
 
     private void loadInitPuzzle() { // probably going to make a few games
@@ -172,6 +180,18 @@ public class SudokuGame extends GameEngine {
     }
 
     @Override
+    public void mouseMoved(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
+    }
+
+    @Override
     public void paintComponent() {
         clearBackground(width(), height());
 
@@ -181,6 +201,21 @@ public class SudokuGame extends GameEngine {
             drawHelp();
         } else if (currentState == GameState.PLAYING) {
             drawGame();
+        }
+
+        if (penCursor != null) {
+            int offsetY = 0;
+
+            if (penClickAnimating) {
+                long elapsed = getTime() - penClickStartTime;
+                if (elapsed > PEN_ANIM_DURATION) {
+                    penClickAnimating = false;
+                } else {
+                    offsetY = 4; // small downward shift on click
+                }
+            }
+
+            drawImage(penCursor, mouseX - 16, mouseY - 16 + offsetY, 32, 32);
         }
     }
 
@@ -217,10 +252,12 @@ public class SudokuGame extends GameEngine {
         drawBoldText(50, 100, "HELP", "Arial", 36);
         drawText(50, 150, "Click a cell to select it", "Arial", 20);
         drawText(50, 180, "Type 1–9 to input numbers", "Arial", 20);
-        drawText(50, 210, "Press R to reset, H for hint", "Arial", 20);
-        drawText(50, 240, "Press ESC to clear selection", "Arial", 20);
-        drawText(50, 270, "Press M to toggle music", "Arial", 20);
-        drawText(50, 320, "Press B to go back to menu", "Arial", 20);
+        drawText(50, 210, "Type 0 / BACKSPACE / DELETE to clear", "Arial", 20);
+        drawText(50, 240, "Press R to reset, H for hint (highlights solvable cell)", "Arial", 20);
+        drawText(50, 270, "Press ESC to clear selection", "Arial", 20);
+        drawText(50, 300, "Press M to toggle music", "Arial", 20);
+        drawText(50, 330, "Grid will flash green when solved correctly", "Arial", 20);
+        drawText(50, 380, "Press B to go back to menu", "Arial", 20);
     }
 
     private void drawGridLines(int originX, int originY) {
@@ -332,6 +369,8 @@ public class SudokuGame extends GameEngine {
         if (isValidGridPosition(clickedRow, clickedColumn)) {
             selectCell(clickedRow, clickedColumn);
             clearHint();
+            penClickAnimating = true;
+            penClickStartTime = getTime();
         }
     }
 

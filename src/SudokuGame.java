@@ -39,6 +39,8 @@ public class SudokuGame extends GameEngine {
     private int hintColumn = -1;
     private long hintStartTime = 0;
     private static final long HINT_DISPLAY_DURATION = 2000; // 2 seconds
+    private enum GameState { MENU, PLAYING, HELP, QUIT }
+    private GameState currentState = GameState.MENU;
 
     // Timer Variables
     private long startTime = 0;
@@ -76,9 +78,7 @@ public class SudokuGame extends GameEngine {
 
     @Override
     public void init() {
-        loadInitPuzzle();
-        resetGameState();
-        startTime = getTime(); // Start the timer
+        currentState = GameState.MENU;
     }
 
     private void loadInitPuzzle() { // probably going to make a few games
@@ -175,7 +175,17 @@ public class SudokuGame extends GameEngine {
     public void paintComponent() {
         clearBackground(width(), height());
 
-        // Draw background image if loaded
+        if (currentState == GameState.MENU) {
+            drawMenu();
+        } else if (currentState == GameState.HELP) {
+            drawHelp();
+        } else if (currentState == GameState.PLAYING) {
+            drawGame();
+        }
+    }
+
+    private void drawGame() {
+        // Draw background
         if (backgroundImage != null) {
             drawImage(backgroundImage, 0, 0, width(), height());
         }
@@ -187,6 +197,30 @@ public class SudokuGame extends GameEngine {
         drawCellHighlights(boardOriginX, boardOriginY);
         drawAllDigits(boardOriginX, boardOriginY);
         drawGameStatus();
+    }
+
+    private void drawMenu() {
+        changeColor(black);
+        drawBoldText(WINDOW_SIZE / 2 - 60, 150, "Sudoku Game", "Arial", 40);
+
+        drawMenuOption("1. Play", 200);
+        drawMenuOption("2. Help", 260);
+        drawMenuOption("3. Quit", 320);
+    }
+
+    private void drawMenuOption(String text, int yPosition) {
+        drawBoldText(WINDOW_SIZE / 2 - 50, yPosition, text, "Arial", 24);
+    }
+
+    private void drawHelp() {
+        changeColor(black);
+        drawBoldText(50, 100, "HELP", "Arial", 36);
+        drawText(50, 150, "Click a cell to select it", "Arial", 20);
+        drawText(50, 180, "Type 1–9 to input numbers", "Arial", 20);
+        drawText(50, 210, "Press R to reset, H for hint", "Arial", 20);
+        drawText(50, 240, "Press ESC to clear selection", "Arial", 20);
+        drawText(50, 270, "Press M to toggle music", "Arial", 20);
+        drawText(50, 320, "Press B to go back to menu", "Arial", 20);
     }
 
     private void drawGridLines(int originX, int originY) {
@@ -333,6 +367,29 @@ public class SudokuGame extends GameEngine {
         if (handleSpecialKeys(keyCode)) {
             return;
         }
+
+        if (currentState == GameState.MENU) {
+            if (keyCode == KeyEvent.VK_1) {
+                currentState = GameState.PLAYING;
+                loadInitPuzzle();
+                resetGameState();
+                startTime = getTime();
+            } else if (keyCode == KeyEvent.VK_2) {
+                currentState = GameState.HELP;
+            } else if (keyCode == KeyEvent.VK_3 || keyCode == KeyEvent.VK_Q) {
+                System.exit(0);
+            }
+            return;
+        }
+
+        if (currentState == GameState.HELP) {
+            if (keyCode == KeyEvent.VK_B) {
+                currentState = GameState.MENU;
+            }
+            return;
+        }
+
+        if (currentState != GameState.PLAYING) return;
 
         if (isCellSelected() && !gameOver) {
             int digitValue = mapKeyToDigit(keyCode);

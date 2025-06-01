@@ -522,7 +522,7 @@ public class SudokuGame extends GameEngine {
 
         if (currentState == GameState.MENU) {
             if (keyCode == KeyEvent.VK_1) {
-                currentState = GameState.PLAYING;
+                currentState = GameState.PLAYING;//Starts the game in normal difficulty
                 loadPuzzle(Difficulty.NORMAL);
                 resetGameState();
                 startTime = getTime();
@@ -672,7 +672,7 @@ public class SudokuGame extends GameEngine {
         init();
     }
 
-    private void showHint() {// my addition searches all cells and find one that can defiantly be solved
+    private void showHint() {// Searches all cells and find one that can defiantly be solved
         for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
             for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
                 if (currentBoard[row][col] == 0 && canSolveCell(row, col)) {

@@ -90,6 +90,12 @@ public class SudokuGame extends GameEngine {
         penCursor = loadImage("pen.png");
         if (backgroundMenuImage == null) {
             backgroundMenuImage = loadImage("backgroundMenuImage.png");
+            if (backGroundMusic == null) {
+                backGroundMusic = loadAudio("backroundMusic.wav");
+            }if (!musicPlaying && backGroundMusic != null) {
+                startAudioLoop(backGroundMusic, -12f);
+                musicPlaying = true;
+            }
         }
 
     }
@@ -259,7 +265,10 @@ public class SudokuGame extends GameEngine {
     }
 
     private void drawHelp() {
-        changeColor(black);
+        if (backgroundMenuImage != null) {
+            drawImage(backgroundMenuImage, 0, 0, width(), height());
+        }
+        changeColor(Color.WHITE);
         drawBoldText(50, 100, "HELP", "Arial", 36);
         drawText(50, 150, "Click a cell to select it", "Arial", 20);
         drawText(50, 180, "Type 1–9 to input numbers", "Arial", 20);

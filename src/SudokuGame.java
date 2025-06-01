@@ -66,6 +66,7 @@ public class SudokuGame extends GameEngine {
 
     // Background Image
     private Image backgroundImage;
+    private Image backgroundMenuImage;
 
     // Pen cursor
     private Image penCursor;
@@ -87,6 +88,10 @@ public class SudokuGame extends GameEngine {
     public void init() {
         currentState = GameState.MENU;
         penCursor = loadImage("pen.png");
+        if (backgroundMenuImage == null) {
+            backgroundMenuImage = loadImage("backgroundMenuImage.png");
+        }
+
     }
 
     private void loadInitPuzzle() { // probably going to make a few games
@@ -195,6 +200,8 @@ public class SudokuGame extends GameEngine {
     public void paintComponent() {
         clearBackground(width(), height());
 
+
+
         if (currentState == GameState.MENU) {
             drawMenu();
         } else if (currentState == GameState.HELP) {
@@ -235,8 +242,12 @@ public class SudokuGame extends GameEngine {
     }
 
     private void drawMenu() {
+
+        if (backgroundMenuImage != null) {
+            drawImage(backgroundMenuImage, 0, 0, width(), height());
+        }
         changeColor(black);
-        drawBoldText(WINDOW_SIZE / 2 - 60, 150, "Sudoku Game", "Arial", 40);
+        drawBoldText(WINDOW_SIZE / 2 - 125, 150, "Sudoku Game", "Arial", 40);
 
         drawMenuOption("1. Play", 200);
         drawMenuOption("2. Help", 260);

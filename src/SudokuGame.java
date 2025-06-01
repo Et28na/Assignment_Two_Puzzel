@@ -1,7 +1,7 @@
 /* Group members
 Ethan Drury: 23006382
 Nicole Jang
-Toby Gladding:
+Toby Gladding: 24013195
 Siddharth Gandhimathinathan,
 */
 //SudokuGame.java
@@ -12,7 +12,6 @@ Siddharth Gandhimathinathan,
 //  Press R to reset
 //  Press H for hint (highlights an empty cell that can be solved)
 //  Press ESC to clear
-//  Grid flashes green when solved correctly
 
 import java.awt.*;
 import java.awt.event.KeyEvent;

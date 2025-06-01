@@ -199,11 +199,11 @@ public class SudokuGame extends GameEngine {
         for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
             for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
                 if (easyClues[row][col]) {
-                    currentBoard[row][col] = easyPuzzle[row][col];
-                    isOriginalClue[row][col] = true;
+                    currentBoard[row][col] = easyPuzzle[row][col]; // Show the numbers
+                    isOriginalClue[row][col] = true;       // Mark as non-editable
                 } else {
-                    currentBoard[row][col] = 0;
-                    isOriginalClue[row][col] = false;
+                    currentBoard[row][col] = 0;  // Leave empty
+                    isOriginalClue[row][col] = false;  // Player can edit
                 }
             }
         }

@@ -1,3 +1,9 @@
+/* Group members
+Ethan Drury: 23006382
+Nicole Jang
+Toby Gladding:
+Siddharth Gandhimathinathan,
+*/
 //SudokuGame.java
 // Sudoku
 // Controls
@@ -39,8 +45,10 @@ public class SudokuGame extends GameEngine {
     private int hintColumn = -1;
     private long hintStartTime = 0;
     private static final long HINT_DISPLAY_DURATION = 2000; // 2 seconds
-    private enum GameState { MENU, PLAYING, HELP, QUIT }
+    private enum GameState { MENU, PLAYING, HELP, QUIT, LEVELS }
     private GameState currentState = GameState.MENU;
+    private enum Difficulty { EASY, NORMAL, HARD }
+    private Difficulty currentDifficulty = Difficulty.NORMAL;
 
     // Timer Variables
     private long startTime = 0;
@@ -52,7 +60,6 @@ public class SudokuGame extends GameEngine {
 
     // Color Scheme
     private final Color SELECTION_HIGHLIGHT = new Color(255, 255, 200); // Pale yellow
-    private final Color SOLVED_FLASH_GREEN = new Color(200, 255, 200);
     private final Color HINT_HIGHLIGHT = new Color(255, 200, 255); // Light purple
     private final Color ERROR_RED = new Color(220, 20, 20);
     private final Color USER_INPUT_BLUE = new Color(20, 20, 180);
@@ -75,6 +82,62 @@ public class SudokuGame extends GameEngine {
     private long penClickStartTime = 0;
     private final long PEN_ANIM_DURATION = 150; // in ms
 
+    // Puzzle types
+    private final int[][] easyPuzzle = {
+            {5,3,4, 6,7,8, 9,1,2},
+            {6,7,2, 1,9,5, 3,4,8},
+            {1,9,8, 3,4,2, 5,6,7},
+
+            {8,5,9, 7,6,1, 4,2,3},
+            {4,2,6, 8,5,3, 7,9,1},
+            {7,1,3, 9,2,4, 8,5,6},
+
+            {9,6,1, 5,3,7, 2,8,4},
+            {2,8,7, 4,1,9, 6,3,5},
+            {3,4,5, 2,8,6, 1,7,9}
+    };
+
+    private final boolean[][] easyClues = { // made more clues for easy
+            {true,true,true, false,true,true, false,false,true},
+            {true,false,true, true,false,true, true,true,false},
+            {false,true,true, true,true,false, true,true,true},
+
+            {true,true,false, true,true,true, false,true,true},
+            {true,false,true, false,true,false, true,false,true},
+            {true,true,false, true,true,true, false,true,true},
+
+            {false,true,true, true,true,false, true,true,false},
+            {true,false,true, true,false,true, true,false,true},
+            {true,true,false, true,true,true, false,true,false}
+    };
+
+    private final int[][] normalPuzzle = {
+            {5,3,0, 0,7,0, 0,0,0},
+            {6,0,0, 1,9,5, 0,0,0},
+            {0,9,8, 0,0,0, 0,6,0},
+
+            {8,0,0, 0,6,0, 0,0,3},
+            {4,0,0, 8,0,3, 0,0,1},
+            {7,0,0, 0,2,0, 0,0,6},
+
+            {0,6,0, 0,0,0, 2,8,0},
+            {0,0,0, 4,1,9, 0,0,5},
+            {0,0,0, 0,8,0, 0,7,9}
+    };
+
+    private final int[][] hardPuzzle = {
+            {0,0,0, 0,0,0, 0,0,0},
+            {0,0,0, 0,0,3, 0,8,5},
+            {0,0,1, 0,2,0, 0,0,0},
+
+            {0,0,0, 5,0,7, 0,0,0},
+            {0,0,4, 0,0,0, 1,0,0},
+            {0,9,0, 0,0,0, 0,0,0},
+
+            {5,0,0, 0,0,0, 0,7,3},
+            {0,0,2, 0,1,0, 0,0,0},
+            {0,0,0, 0,4,0, 0,0,9}
+    };
 
     public static void main(String[] args) {
         GameEngine.createGame(new SudokuGame(), 60); // framerate
@@ -97,30 +160,21 @@ public class SudokuGame extends GameEngine {
                 musicPlaying = true;
             }
         }
-
     }
 
-    private void loadInitPuzzle() { // probably going to make a few games
-        int[][] initialPuzzle = {
-                // Starter puzzle 0 = empty
-                {5,3,0, 0,7,0, 0,0,0}, //T - top row
-                {6,0,0, 1,9,5, 0,0,0}, // M - middle row
-                {0,9,8, 0,0,0, 0,6,0}, // B - Bottom row
+    private void loadPuzzle(Difficulty difficulty) {
+        currentDifficulty = difficulty;
 
-                {8,0,0, 0,6,0, 0,0,3}, //T - top row
-                {4,0,0, 8,0,3, 0,0,1}, // M - middle row
-                {7,0,0, 0,2,0, 0,0,6}, // B - Bottom row
-
-                {0,6,0, 0,0,0, 2,8,0}, //T - top row
-                {0,0,0, 4,1,9, 0,0,5}, // M - middle row
-                {0,0,0, 0,8,0, 0,7,9} // B - Bottom row
-        };
-
-        for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
-            for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
-                currentBoard[row][col] = initialPuzzle[row][col];
-                isOriginalClue[row][col] = initialPuzzle[row][col] != 0;
-            }
+        switch (difficulty) {
+            case EASY:
+                loadEasyPuzzle();
+                break;
+            case NORMAL:
+                loadNormalPuzzle();
+                break;
+            case HARD:
+                loadHardPuzzle();
+                break;
         }
 
         // Load background image
@@ -141,6 +195,38 @@ public class SudokuGame extends GameEngine {
         }
     }
 
+    private void loadEasyPuzzle() {
+        for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
+            for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
+                if (easyClues[row][col]) {
+                    currentBoard[row][col] = easyPuzzle[row][col];
+                    isOriginalClue[row][col] = true;
+                } else {
+                    currentBoard[row][col] = 0;
+                    isOriginalClue[row][col] = false;
+                }
+            }
+        }
+    }
+
+    private void loadNormalPuzzle() {
+        for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
+            for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
+                currentBoard[row][col] = normalPuzzle[row][col];
+                isOriginalClue[row][col] = normalPuzzle[row][col] != 0;
+            }
+        }
+    }
+
+    private void loadHardPuzzle() {
+        for (int row = 0; row < SUDOKU_GRID_SIZE; row++) {
+            for (int col = 0; col < SUDOKU_GRID_SIZE; col++) {
+                currentBoard[row][col] = hardPuzzle[row][col];
+                isOriginalClue[row][col] = hardPuzzle[row][col] != 0;
+            }
+        }
+    }
+
     private void resetGameState() {
         selectedRow = selectedColumn = -1;
         isPuzzleSolved = false;
@@ -153,11 +239,11 @@ public class SudokuGame extends GameEngine {
 
     @Override
     public void update(double deltaTime) {
-        updateSolvedFlashEffect();
+
         updateHintDisplay();
 
         // Update countdown timer only if game is still active
-        if (!isPuzzleSolved && !gameOver) {
+        if (!isPuzzleSolved && !gameOver && currentState == GameState.PLAYING) {
             long elapsed = getTime() - startTime;
             long newTimeRemaining = INITIAL_TIME - elapsed;
 
@@ -171,16 +257,6 @@ public class SudokuGame extends GameEngine {
         }
     }
 
-    private void updateSolvedFlashEffect() {
-        if (isPuzzleSolved) {
-            boolean shouldFlashGreen = (getTime() / SOLVED_FLASH_INTERVAL) % 2 == 0;
-            if (shouldFlashGreen) {
-                changeBackgroundColor(SOLVED_FLASH_GREEN);
-            } else {
-                changeBackgroundColor(white);
-            }
-        }
-    }
 
     private void updateHintDisplay() {
         if (hintRow != -1 && hintColumn != -1) {
@@ -206,12 +282,12 @@ public class SudokuGame extends GameEngine {
     public void paintComponent() {
         clearBackground(width(), height());
 
-
-
         if (currentState == GameState.MENU) {
             drawMenu();
         } else if (currentState == GameState.HELP) {
             drawHelp();
+        } else if (currentState == GameState.LEVELS) {
+            drawLevels();
         } else if (currentState == GameState.PLAYING) {
             drawGame();
         }
@@ -248,7 +324,6 @@ public class SudokuGame extends GameEngine {
     }
 
     private void drawMenu() {
-
         if (backgroundMenuImage != null) {
             drawImage(backgroundMenuImage, 0, 0, width(), height());
         }
@@ -256,12 +331,26 @@ public class SudokuGame extends GameEngine {
         drawBoldText(WINDOW_SIZE / 2 - 125, 150, "Sudoku Game", "Arial", 40);
 
         drawMenuOption("1. Play", 200);
-        drawMenuOption("2. Help", 260);
-        drawMenuOption("3. Quit", 320);
+        drawMenuOption("2. Levels", 260);
+        drawMenuOption("3. Help", 320);
+        drawMenuOption("4. Quit", 380);
+    }
+
+    private void drawLevels() {
+        if (backgroundMenuImage != null) {
+            drawImage(backgroundMenuImage, 0, 0, width(), height());
+        }
+        changeColor(white);
+        drawBoldText(WINDOW_SIZE / 2 - 100, 150, "Select Level", "Arial", 36);
+
+        drawMenuOption("1. Easy", 220);
+        drawMenuOption("2. Normal", 280);
+        drawMenuOption("3. Hard", 340);
+        drawMenuOption("B. Back to Menu", 420);
     }
 
     private void drawMenuOption(String text, int yPosition) {
-        drawBoldText(WINDOW_SIZE / 2 - 50, yPosition, text, "Arial", 24);
+        drawBoldText(WINDOW_SIZE / 2 - 50, yPosition, text, "Arial", 25);
     }
 
     private void drawHelp() {
@@ -365,10 +454,14 @@ public class SudokuGame extends GameEngine {
 
         drawBoldText(BOARD_PADDING, 30, String.format("Time: %02d:%02d", minutes, seconds), "Arial", 20);
 
+        // Draw difficulty level
+        changeColor(black);
+        drawText(BOARD_PADDING + 200, 30, "Level: " + currentDifficulty, "Arial", 20);
+
         // Draw game status messages
         if (isPuzzleSolved) {
             changeColor(green);
-            drawBoldText(BOARD_PADDING, WINDOW_SIZE - 10, "Puzzle Solved!", "Arial", 30);
+            drawBoldText(BOARD_PADDING, WINDOW_SIZE - 10, "Puzzle Solved!", "Arial", 20);
             changeColor(blue);
             long finalTime = (INITIAL_TIME - timeRemaining) / 1000;
             drawText(BOARD_PADDING + 250, WINDOW_SIZE - 10, "Completed in: " + (finalTime / 60) + "m " + (finalTime % 60) + "s", "Arial", 20);
@@ -430,13 +523,37 @@ public class SudokuGame extends GameEngine {
         if (currentState == GameState.MENU) {
             if (keyCode == KeyEvent.VK_1) {
                 currentState = GameState.PLAYING;
-                loadInitPuzzle();
+                loadPuzzle(Difficulty.NORMAL);
                 resetGameState();
                 startTime = getTime();
             } else if (keyCode == KeyEvent.VK_2) {
+                currentState = GameState.LEVELS;
+            } else if (keyCode == KeyEvent.VK_3) {
                 currentState = GameState.HELP;
-            } else if (keyCode == KeyEvent.VK_3 || keyCode == KeyEvent.VK_Q) {
+            } else if (keyCode == KeyEvent.VK_4 || keyCode == KeyEvent.VK_Q) {
                 System.exit(0);
+            }
+            return;
+        }
+
+        if (currentState == GameState.LEVELS) {
+            if (keyCode == KeyEvent.VK_1) {
+                currentState = GameState.PLAYING;
+                loadPuzzle(Difficulty.EASY);
+                resetGameState();
+                startTime = getTime();
+            } else if (keyCode == KeyEvent.VK_2) {
+                currentState = GameState.PLAYING;
+                loadPuzzle(Difficulty.NORMAL);
+                resetGameState();
+                startTime = getTime();
+            } else if (keyCode == KeyEvent.VK_3) {
+                currentState = GameState.PLAYING;
+                loadPuzzle(Difficulty.HARD);
+                resetGameState();
+                startTime = getTime();
+            } else if (keyCode == KeyEvent.VK_B) {
+                currentState = GameState.MENU;
             }
             return;
         }
@@ -469,10 +586,15 @@ public class SudokuGame extends GameEngine {
     private boolean handleSpecialKeys(int keyCode) {
         switch (keyCode) {
             case KeyEvent.VK_R:
-                resetPuzzle();
+                if (currentState == GameState.PLAYING) {
+                    loadPuzzle(currentDifficulty);
+                    resetGameState();
+                }
                 return true;
             case KeyEvent.VK_H:
-                showHint();
+                if (currentState == GameState.PLAYING) {
+                    showHint();
+                }
                 return true;
             case KeyEvent.VK_ESCAPE:
                 clearSelection();

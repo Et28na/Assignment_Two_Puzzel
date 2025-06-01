@@ -366,6 +366,7 @@ public class SudokuGame extends GameEngine {
         drawText(50, 270, "Press ESC to clear selection", "Arial", 20);
         drawText(50, 300, "Press M to toggle music", "Arial", 20);
         drawText(50, 380, "Press B to go back to menu", "Arial", 20);
+        drawText(50, 410, "Press P to go back to menu once in the level", "Arial", 20);
     }
 
     private void drawGridLines(int originX, int originY) {
@@ -579,8 +580,14 @@ public class SudokuGame extends GameEngine {
                 }
                 musicPlaying = !musicPlaying;
             }
+        }//Return to menu once in game
+        if (keyCode == KeyEvent.VK_P) {
+            currentState = GameState.MENU;
+            resetGameState();
         }
     }
+
+
 
     private boolean handleSpecialKeys(int keyCode) {
         switch (keyCode) {

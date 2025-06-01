@@ -365,7 +365,6 @@ public class SudokuGame extends GameEngine {
         drawText(50, 240, "Press R to reset, H for hint (highlights solvable cell)", "Arial", 20);
         drawText(50, 270, "Press ESC to clear selection", "Arial", 20);
         drawText(50, 300, "Press M to toggle music", "Arial", 20);
-        drawText(50, 330, "Grid will flash green when solved correctly", "Arial", 20);
         drawText(50, 380, "Press B to go back to menu", "Arial", 20);
     }
 

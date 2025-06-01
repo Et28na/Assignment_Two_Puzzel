@@ -21,10 +21,10 @@ import java.awt.event.MouseEvent;
 public class SudokuGame extends GameEngine {
 
     // Game Configuration Constants
-    private static final int SUDOKU_GRID_SIZE = 9; // The total size of the grid
-    private static final int SUBGRID_SIZE = 3; // One of the sections out of the nine grids
-    private static final int CELL_SIZE_PIXELS = 50; // This makes each cell(box)-50 pixels tall and wide
-    private static final int BOARD_PADDING = 50; // Adds  pixels from the board to the window (Might change would be good to get feedback)
+    private static final int SUDOKU_GRID_SIZE = 9; // The total size of the grid (9x9)
+    private static final int SUBGRID_SIZE = 3; // One of the Sub sections out of the nine grids
+    private static final int CELL_SIZE_PIXELS = 50; // This makes each cell(box)-50 x 50
+    private static final int BOARD_PADDING = 50; // Adds  padding pixels from the board to the window
     private static final int WINDOW_SIZE = CELL_SIZE_PIXELS * SUDOKU_GRID_SIZE + BOARD_PADDING * 2;
     // just sum to find the total window size (board padding times 2 as both sides of the board)
 
@@ -32,11 +32,11 @@ public class SudokuGame extends GameEngine {
     private static final int GRID_LINE_THICK = 3; // the outer grid
     private static final int CELL_BORDER_OFFSET = 1; // To make sure when highlighting i.e hints or selection doesn't cover the lines
     private static final int TEXT_VERTICAL_OFFSET = 15; // Moves text down from the cell center.
-    private static final int SOLVED_FLASH_INTERVAL = 300; // little flash when solve for seconds thinks it looks cool
+
 
     // Game State Variables
-    private final int[][] currentBoard = new int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE];
-    private final boolean[][] isOriginalClue = new boolean[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE];
+    private final int[][] currentBoard = new int[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE];//stores the values of all cells
+    private final boolean[][] isOriginalClue = new boolean[SUDOKU_GRID_SIZE][SUDOKU_GRID_SIZE];//Tracks if it is part of the original puzzle or non-modified numbers
     private int selectedRow = -1;
     private int selectedColumn = -1;
     private boolean isPuzzleSolved = false;
@@ -54,26 +54,26 @@ public class SudokuGame extends GameEngine {
     private long startTime = 0;
     private long timeRemaining = 300000; // 5 minutes in milliseconds
     private static final long INITIAL_TIME = 300000; // 5 minutes
-    private static final long CORRECT_BONUS = 15000; // +15 seconds for correct
+    // private static final long CORRECT_BONUS = 15000;  +15 seconds for correct, did not need this in the end
     private static final long WRONG_PENALTY = 5000; // -5 seconds for wrong
     private boolean gameOver = false;
 
     // Color Scheme
     private final Color SELECTION_HIGHLIGHT = new Color(255, 255, 200); // Pale yellow
     private final Color HINT_HIGHLIGHT = new Color(255, 200, 255); // Light purple
-    private final Color ERROR_RED = new Color(220, 20, 20);
-    private final Color USER_INPUT_BLUE = new Color(20, 20, 180);
+    private final Color ERROR_RED = new Color(220, 20, 20);//Obv Red
+    private final Color USER_INPUT_BLUE = new Color(20, 20, 180);//Dark Blue
 
     //Audio
     private static AudioClip backGroundMusic;
     private static AudioClip selectSound;
     private static AudioClip errorSound;
-    private static AudioClip victorySound;
-    private static boolean musicPlaying = false;
+    private static AudioClip victorySound;// only plays when the game finishes
+    private static boolean musicPlaying = false;//toggle background music tracker
 
     // Background Image
-    private Image backgroundImage;
-    private Image backgroundMenuImage;
+    private Image backgroundImage;//Game background
+    private Image backgroundMenuImage;//Menu background
 
     // Pen cursor
     private Image penCursor;
@@ -645,7 +645,7 @@ public class SudokuGame extends GameEngine {
                 playAudio(selectSound);
             }
             // Add 15 seconds for correct answer decrease start time to increase remaining time
-            startTime = startTime + CORRECT_BONUS;
+            /* startTime = startTime + CORRECT_BONUS; Decided it was easy enough without this*/
         } else if (value == 0) {
             // Just play sound for clearing, no time bonus/penalty
             if (selectSound != null) {

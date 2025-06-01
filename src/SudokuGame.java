@@ -518,6 +518,14 @@ public class SudokuGame extends GameEngine {
         if (handleSpecialKeys(keyCode)) {
             return;
         }
+        else if (keyCode == KeyEvent.VK_M) {        // press M to toggle music
+            if (musicPlaying) {
+                stopAudioLoop(backGroundMusic);
+            } else {
+                startAudioLoop(backGroundMusic, -12f);
+            }
+            musicPlaying = !musicPlaying;
+        }
 
         if (currentState == GameState.MENU) {
             if (keyCode == KeyEvent.VK_1) {
@@ -571,14 +579,7 @@ public class SudokuGame extends GameEngine {
             if (digitValue >= 0) {
                 placeCellValue(digitValue);
             }
-            else if (keyCode == KeyEvent.VK_M) {        // press M to toggle music
-                if (musicPlaying) {
-                    stopAudioLoop(backGroundMusic);
-                } else {
-                    startAudioLoop(backGroundMusic, -12f);
-                }
-                musicPlaying = !musicPlaying;
-            }
+
         }//Return to menu once in game
         if (keyCode == KeyEvent.VK_P) {
             currentState = GameState.MENU;
